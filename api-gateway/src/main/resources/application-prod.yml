@@ -1,0 +1,51 @@
+server:
+  port: 4004
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service-route
+              uri: http://auth-service.patient-management.local:4005
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+
+            - id: patient-service-route
+              uri: http://patient-service.patient-management.local:4000
+              predicates:
+                - Path=/api/patients/**
+              filters:
+                - StripPrefix=1
+                - JwtValidation
+
+
+            #            DOCS FOR EVERY ROUTE
+            - id: api-docs-patient-route
+              uri: http://patient-service.patient-management.local:4000
+              predicates:
+                - Path=/api-docs/patients
+              filters:
+                - RewritePath=/api-docs/patients,/v3/api-docs
+
+            - id: api-docs-auth-route
+              uri: http://auth-service.patient-management.local:4005
+              predicates:
+                - Path=/api-docs/auth
+              filters:
+                - RewritePath=/api-docs/auth,/v3/api-docs
+
+
+
+
+
+          ## REST CLIENT ? http://localhost:4004/api/patients
+          ## API GATEWAY ? http://patient-service:4004/patients
+          ## PATIENT SERVICE (SPRING BOOT APP) ? /patients ? Patients Array
