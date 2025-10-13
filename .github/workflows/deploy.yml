@@ -30,12 +30,12 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_IAM_ROLE_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '21'
+#          cache: 'maven'
 
 #      - name: Build Java Project with Maven
 #        run: mvn clean package -DskipTests
@@ -44,28 +44,51 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+#      - name: Build, Tag, and Push Docker Images
+#        id: build-images
+#        run: |
+#          # Danh sách các microservice, tương ứng với tên thư mục và 'imageName' trong CDK
+#          services=("api-gateway" "appointment-service" "auth-service" "billing-service" "patient-service" "analytics-service")
+#          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+#          IMAGE_TAG=${{ github.sha }}
+#
+#          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+#          echo "ECR_REPO_URI_PREFIX=${REGISTRY}/${ECR_REPOSITORY_PREFIX}" >> $GITHUB_ENV
+#
+#          # 1. Đảm bảo repository CHUNG tồn tại
+#          echo "Ensuring ECR repository '${{ env.ECR_REPOSITORY_PREFIX }}' exists..."
+#          aws ecr create-repository --repository-name ${{ env.ECR_REPOSITORY_PREFIX }} --region ${{ env.AWS_REGION }} --image-scanning-configuration scanOnPush=true || true
+#
+#          # 2. Build và push từng image vào repository chung đó
+#          for service in "${services[@]}"; do
+#            echo "Building and pushing image for ${service}..."
+#            # Tên image được build theo định dạng: <registry>/<repo_chung>/<ten_service>:<tag>
+#            # Điều này sẽ khớp với logic trong code CDK của bạn
+#            FULL_IMAGE_NAME="${REGISTRY}/${ECR_REPOSITORY_PREFIX}/${service}:${IMAGE_TAG}"
+#
+#            docker build -t ${FULL_IMAGE_NAME} ./${service}
+#            docker push ${FULL_IMAGE_NAME}
+#          done
+
       - name: Build, Tag, and Push Docker Images
         id: build-images
         run: |
-          # Danh sách các microservice, tương ứng với tên thư mục và 'imageName' trong CDK
           services=("api-gateway" "appointment-service" "auth-service" "billing-service" "patient-service" "analytics-service")
           REGISTRY=${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG=${{ github.sha }}
           
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
           echo "ECR_REPO_URI_PREFIX=${REGISTRY}/${ECR_REPOSITORY_PREFIX}" >> $GITHUB_ENV
-
-          # 1. Đảm bảo repository CHUNG tồn tại
-          echo "Ensuring ECR repository '${{ env.ECR_REPOSITORY_PREFIX }}' exists..."
-          aws ecr create-repository --repository-name ${{ env.ECR_REPOSITORY_PREFIX }} --region ${{ env.AWS_REGION }} --image-scanning-configuration scanOnPush=true || true
           
-          # 2. Build và push từng image vào repository chung đó
+          echo "🪣 Ensuring ECR repository exists..."
+          aws ecr create-repository \
+            --repository-name ${{ env.ECR_REPOSITORY_PREFIX }} \
+            --region ${{ env.AWS_REGION }} \
+            --image-scanning-configuration scanOnPush=true || true
+          
           for service in "${services[@]}"; do
-            echo "Building and pushing image for ${service}..."
-            # Tên image được build theo định dạng: <registry>/<repo_chung>/<ten_service>:<tag>
-            # Điều này sẽ khớp với logic trong code CDK của bạn
+            echo "🚀 Building and pushing image for ${service}..."
             FULL_IMAGE_NAME="${REGISTRY}/${ECR_REPOSITORY_PREFIX}/${service}:${IMAGE_TAG}"
-          
             docker build -t ${FULL_IMAGE_NAME} ./${service}
             docker push ${FULL_IMAGE_NAME}
           done
@@ -84,11 +107,28 @@ jobs:
           npm install -g aws-cdk
           npm install
 
+#      - name: Deploy CloudFormation Stack with CDK
+#        run: |
+#          cd infrastructure
+#          cdk deploy "PatientManagementStack" \
+#            --require-approval never \
+#            --parameters EcrRepoUriPrefix=${{ env.ECR_REPO_URI_PREFIX }} \
+#            --parameters ImageTag=${{ env.IMAGE_TAG }}
+
       - name: Deploy CloudFormation Stack with CDK
         run: |
           cd infrastructure
-          # Các tham số truyền vào giờ đã khớp với logic build image
-          cdk deploy "PatientManagementStack" \
+          echo "🚀 Deploying stack ${{ env.STACK_NAME }}..."
+          cdk deploy "${{ env.STACK_NAME }}" \
             --require-approval never \
             --parameters EcrRepoUriPrefix=${{ env.ECR_REPO_URI_PREFIX }} \
             --parameters ImageTag=${{ env.IMAGE_TAG }}
+
+      - name: Describe CloudFormation Stack Outputs
+        run: |
+          echo "🌐 Fetching stack outputs..."
+          aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --region "${{ env.AWS_REGION }}" \
+            --query "Stacks[0].Outputs" \
+            --output table
