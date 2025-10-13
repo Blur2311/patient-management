@@ -37,8 +37,8 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Build Java Project with Maven
-        run: mvn clean package -DskipTests
+#      - name: Build Java Project with Maven
+#        run: mvn clean package -DskipTests
 
       - name: Login to Amazon ECR
         id: login-ecr
