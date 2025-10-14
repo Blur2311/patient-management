@@ -88,7 +88,7 @@ jobs:
           cd infrastructure
           echo "🚀 Deploying stack ${{ env.STACK_NAME }}..."
           cdk deploy "${{ env.STACK_NAME }}" \
-            --app "mvn -e -q exec:java -Dexec.mainClass=com.yourorg.YourMainClass" \
+            --app "mvn -e -q exec:java -Dexec.mainClass=com.pm.stack.AwsStack" \
             --require-approval never \
             --parameters EcrRepoUriPrefix=${{ env.ECR_REPO_URI_PREFIX }} \
             --parameters ImageTag=${{ env.IMAGE_TAG }}
