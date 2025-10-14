@@ -12,6 +12,7 @@ on:
 env:
   AWS_REGION: ap-southeast-1
   ECR_REPOSITORY_PREFIX: patient-management # Đây là tên repository chung
+  STACK_NAME: PatientManagementStack
 
 jobs:
   deploy:
