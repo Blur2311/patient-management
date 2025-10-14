@@ -173,7 +173,7 @@ public class AwsStack extends Stack {
         return CfnCluster.Builder
                 .create(this, "MskCluster")
                 .clusterName("kafka-cluster")
-                .kafkaVersion("2.8.1") // Dùng phiên bản được hỗ trợ rộng rãi
+                .kafkaVersion("3.9.0")
                 .numberOfBrokerNodes(2) // Production nên dùng ít nhất 2 broker ở 2 AZ khác nhau
                 .brokerNodeGroupInfo(CfnCluster.BrokerNodeGroupInfoProperty.builder()
                         .instanceType("kafka.m5.large") // Đây là kích thước tối thiểu AWS MSK yêu cầu
