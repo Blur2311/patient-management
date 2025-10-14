@@ -162,7 +162,7 @@ public class AwsStack extends Stack {
                 .healthCheckConfig(CfnHealthCheck.HealthCheckConfigProperty.builder()
                         .type("TCP")
                         .port(Token.asNumber(db.getDbInstanceEndpointPort()))
-                        .ipAddress(db.getDbInstanceEndpointAddress())
+                        .fullyQualifiedDomainName(db.getDbInstanceEndpointAddress())
                         .requestInterval(30)
                         .failureThreshold(3)
                         .build())
