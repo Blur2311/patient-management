@@ -68,8 +68,8 @@ public class AwsStack extends Stack {
                 "Allow access from ECS services"
         );
 
-        DatabaseInstance authServiceDb = createDatabase("AuthServiceDB", "auth-service-db");
-        DatabaseInstance patientServiceDb = createDatabase("PatientServiceDB", "patient-service-db");
+        DatabaseInstance authServiceDb = createDatabase("AuthServiceDB", "authservicedb");
+        DatabaseInstance patientServiceDb = createDatabase("PatientServiceDB", "patientservicedb");
 
         CfnHealthCheck authDbHealthCheck = createDbHealthCheck(authServiceDb, "AuthServiceDBHealthCheck");
         CfnHealthCheck patientDbHealthCheck = createDbHealthCheck(patientServiceDb, "PatientServiceDBHealthCheck");
