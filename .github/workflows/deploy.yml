@@ -99,19 +99,25 @@ jobs:
             docker push ${FULL_IMAGE_NAME}
           done
 
-      - name: Setup Node.js for AWS CDK
+      - name: Setup Node.js (for CDK CLI)
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Nên dùng phiên bản Node LTS mới hơn
-          cache: 'npm' # Đề xuất: Cache npm packages
-          cache-dependency-path: 'infrastructure/package-lock.json'
+          node-version: '20'
 
+      - name: Install AWS CDK CLI
+        run: npm install -g aws-cdk
 
-      - name: Install AWS CDK and dependencies
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build CDK for Java Project
         run: |
           cd infrastructure
-          npm install -g aws-cdk
-          npm install
+          mvn package
 
 #      - name: Deploy CloudFormation Stack with CDK
 #        run: |
