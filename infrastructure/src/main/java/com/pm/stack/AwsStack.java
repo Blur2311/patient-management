@@ -230,7 +230,7 @@ public class AwsStack extends Stack {
         Map<String, String> envVars = new HashMap<>();
 
         // Lấy bootstrap server động từ MSK cluster thay vì hardcode
-        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", mskCluster.getAtt("BootstrapBrokers").toString());
+        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", mskCluster.getAtt("BootstrapBrokersTls").toString());
         envVars.put("SPRING_CACHE_TYPE", "redis");
         envVars.put("SPRING_DATA_REDIS_HOST", elasticCacheCluster.getAttrRedisEndpointAddress());
         envVars.put("SPRING_DATA_REDIS_PORT", elasticCacheCluster.getAttrRedisEndpointPort());
@@ -356,7 +356,7 @@ public class AwsStack extends Stack {
     }
 
     public static void main(final String[] args) {
-        App app = new App();
+        App app = new App(AppProps.builder().outdir("./cdk.out").build());
         new AwsStack(app, "PatientManagementStack", StackProps.builder()
                 .build());
         app.synth();
