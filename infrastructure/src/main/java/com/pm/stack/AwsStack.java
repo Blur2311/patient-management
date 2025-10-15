@@ -85,6 +85,7 @@ public class AwsStack extends Stack {
                 authServiceDb,
                 Map.of("JWT_SECRET", "N2Y0ZDI0Y2E3NTM1YzU3ZjI2NzY0NzRjMzEwYzYzYWI="));
 
+
         authService.getNode().addDependency(authDbHealthCheck);
         authService.getNode().addDependency(authServiceDb);
 
